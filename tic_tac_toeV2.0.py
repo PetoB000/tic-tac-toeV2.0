@@ -95,15 +95,12 @@ def get_move(board):
 
 
 def get_AI_move(board):
-    moves = ((0, 0), (0, 1), (0, 2), (1, 0), (1, 1),
-             (1, 2), (2, 0), (2, 1), (2, 1))
-    move = random.choice(moves)
-    if board[move[0]][move[1]] != ".":
-        get_AI_move(board)
-    else:
-        row = move[0]
-        col = move[1]
-        return row, col
+    aviable_moves = []
+    for row in range(len(board)):
+        for col in range(len(board[row])):
+            if board[row][col] == ".":
+                aviable_moves.append((row, col))
+    return random.choice(aviable_moves)
 
 
 def mark(turn, row, col, board):
@@ -171,6 +168,7 @@ def main(mode):
             if is_full(board) == True:
                 print("The board is full")
                 print_board(board)
+                quit()
             if turn % 2 == 0:
                 player = 'X'
                 print_board(board)
