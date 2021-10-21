@@ -1,5 +1,5 @@
 import os
-# import random
+import random
 
 
 def init_board():
@@ -7,25 +7,48 @@ def init_board():
     return board
 
 
+def restart():
+    option = input("Do you want to play again?\n(Y/N)").upper()
+    if option == "Y":
+        main_menu()
+    elif option == "N":
+        print("Thank you for playing!")
+        quit()
+
+
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def check_winer(board):
-    for row in range(3):
-        if board[row][0] == board[row][1] == board[row][2] and board[row][0] != ".":
+
+def check_row(board):
+    for row in range(len(board)):
+        if board[row][0] == board[row][1] and board[row][1] == board[row][2] and board[row][0] != ".":
             return True
-        return False
-    for col in range(3):
-        if board[0][col] == board[1][col] == board[2][col] and board[0][col] != ".":
+
+
+def check_col(board):
+    for col in range(len(board)):
+        if board[0][col] == board[1][col] and board[1][col] == board[2][col] and board[0][col] != ".":
             return True
-        return False
+
+
+def check_first_diagonal(board):
     if board[0][0] == board[1][1] == board[2][2] and board[0][0] != ".":
         return True
-    return False
+
+
+def check_second_diagonal(board):
     if board[0][2] == board[1][1] == board[2][0] and board[0][2] != ".":
         return True
-    return False
 
+
+def has_won(board):
+    row = check_row(board)
+    col = check_col(board)
+    diag1 = check_first_diagonal(board)
+    diag2 = check_second_diagonal(board)
+    if row or col or diag1 or diag2 == True:
+        return True
 
 
 def reset(board):
@@ -39,9 +62,9 @@ def get_move(board):
     row, col = 0, 0
     letters = ['A', 'B', 'C']
     numbers = [0, 1, 2]
-    while check_winer(board) == False:
-        row_col = input("Give a letter for the row and a number for the collumn:")
-        if row_col == quit:
+    while True:
+        row_col = input("Give a letter for the row and a number for the collumn:").upper()
+        if row_col == "QUIT":
             print("Thanks for playing")
             quit()
         if len(row_col) == 2:
@@ -71,22 +94,41 @@ def get_move(board):
             print("Invalid input")
 
 
+def get_AI_move(board):
+    moves = ((0, 0), (0, 1), (0, 2), (1, 0), (1, 1),
+             (1, 2), (2, 0), (2, 1), (2, 1))
+    move = random.choice(moves)
+    if board[move[0]][move[1]] != ".":
+        get_AI_move(board)
+    else:
+        row = move[0]
+        col = move[1]
+        return row, col
+
+
 def mark(turn, row, col, board):
     if turn % 2 == 0:
         player = 'X'
     else:
-        player = '0'
+        player = 'O'
     if board[row][col] == ".":
         board[row][col] = player
     else:
         print("Field taken")
+        return False
     return board
 
 
-def is_full(turn):
-    if turn == 9:
+def is_full(board):
+    counter = 0
+    for row in board:
+        for col in row:
+            if col == ".":
+                counter += 1
+        if counter > 0:
+            return False
+    if counter == 0:
         return True
-    return False
 
 
 def print_board(board):
@@ -98,16 +140,65 @@ def print_board(board):
             print(" ---|---|---")
 
 
-def main():
+def main(mode):
     board = init_board()
-    print_board(board)
     turn = 0
-    won = check_winer(board)
-    while won == False and is_full(turn) == False:
-        move = get_move(board)
-        mark(turn, move[0], move[1], board)
-        print_board(board)
-        turn += 1
+    if mode == "HUMAN-HUMAN":
+        while True:
+            if turn % 2 == 0:
+                player = 'O'
+            else:
+                player = 'X'
+            clear()
+            if has_won(board) == True:
+                print(player + " has won!")
+                print_board(board)
+                restart()
+            if is_full(board) == True:
+                print("The board is full")
+                print_board(board)
+            print_board(board)
+            move = get_move(board)
+            mark(turn, move[0], move[1], board)
+            turn += 1
+    if mode == "HUMAN-AI":
+        while True:
+            clear()
+            if has_won(board) == True:
+                print(player + " has won!")
+                print_board(board)
+                restart()
+            if is_full(board) == True:
+                print("The board is full")
+                print_board(board)
+            if turn % 2 == 0:
+                player = 'X'
+                print_board(board)
+                move = get_move(board)
+                mark(turn, move[0], move[1], board)
+            else:
+                player = 'O'
+                print_board(board)
+                move = get_AI_move(board)
+                mark(turn, move[0], move[1], board)
+            turn += 1
+
+
+def main_menu():
+    while True:
+        clear()
+        print("Please select a game mode\n")
+        mode = input("1. HUMAN VS HUMAN\n2. HUMAN VS AI\n").upper()
+        if mode == "1":
+            main("HUMAN-HUMAN")
+        elif mode == "2":
+            main("HUMAN-AI")
+        elif mode == "QUIT":
+            os.system("clear")
+            quit()
+        else:
+            print("Invalid input, please use the numbers!")
+
 
 if __name__ == '__main__':
-    main()
+    main_menu()
